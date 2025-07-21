@@ -1,0 +1,44 @@
+blueprint:
+  name: Wetterwarnung automatisch senden oder löschen
+  description: Sendet eine Warnung per Skript oder löscht die Benachrichtigung, wenn keine Warnung mehr vorliegt
+  domain: automation
+  input:
+    warnsensor:
+      name: Warnsensor
+      description: Sensor mit Wetterwarnung
+      selector:
+        entity:
+          domain: sensor
+    warn_script:
+      name: Warnskript
+      description: Skript, das die Benachrichtigung versendet
+      selector:
+        entity:
+          domain: script
+
+trigger:
+  - platform: state
+    entity_id: !input warnsensor
+    attribute: warning_1_end
+
+condition: []
+
+action:
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: >
+              {{ state_attr(states[blueprint.input.warnsensor].entity_id, 'warning_1_name') is not none }}
+        sequence:
+          - service: script.turn_on
+            target:
+              entity_id: !input warn_script
+      - conditions:
+          - condition: template
+            value_template: >
+              {{ state_attr(states[blueprint.input.warnsensor].entity_id, 'warning_1_name') is none }}
+        sequence:
+          - service: persistent_notification.dismiss
+            data:
+              notification_id: wetterwarnung_allgemein
+mode: single

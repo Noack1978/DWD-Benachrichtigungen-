@@ -1,0 +1,60 @@
+blueprint:
+  name: Wetterwarnung – Allgemeine Benachrichtigung
+  description: Sendet eine Wetterwarnung als persistente Benachrichtigung und an ein mobiles Gerät
+  domain: script
+  input:
+    warnsensor:
+      name: Warnsensor
+      description: Sensor mit den Wetterwarnungen (z. B. DWD oder andere)
+      selector:
+        entity:
+          domain: sensor
+    mobile_device:
+      name: Mobiles Gerät
+      description: Gerät, an das die Push-Benachrichtigung geschickt wird
+      selector:
+        device:
+          integration: mobile_app
+
+sequence:
+  - data:
+      title: Wetterwarnung
+      notification_id: wetterwarnung_allgemein
+      message: >
+        {% set anzahl = state_attr(blueprint.input.warnsensor, 'warning_count') | int(default=1) %}
+        {% set updated = state_attr(blueprint.input.warnsensor, 'last_update') %}
+
+        **Letzte Aktualisierung:** {{ updated }}  
+        **Anzahl der Warnungen:** {{ anzahl }}
+
+        {% for i in range(1, anzahl + 1) %}
+        ---
+        ### **Warnung {{ i }}**
+        **Name:** {{ state_attr(blueprint.input.warnsensor, 'warning_' ~ i ~ '_name') }}  
+        **Titel:** {{ state_attr(blueprint.input.warnsensor, 'warning_' ~ i ~ '_headline') }}  
+        **Beschreibung:** {{ state_attr(blueprint.input.warnsensor, 'warning_' ~ i ~ '_description') }}  
+        **Hinweise:** {{ state_attr(blueprint.input.warnsensor, 'warning_' ~ i ~ '_instruction') }}  
+        **Zeitraum:**  
+        - Start: {{ (state_attr(blueprint.input.warnsensor, 'warning_' ~ i ~ '_start') | as_datetime | as_local).strftime('%d.%m.%Y %H:%M') }}  
+        - Ende: {{ (state_attr(blueprint.input.warnsensor, 'warning_' ~ i ~ '_end') | as_datetime | as_local).strftime('%d.%m.%Y %H:%M') }}  
+        **Parameter:** {{ state_attr(blueprint.input.warnsensor, 'warning_' ~ i ~ '_parameters') }}
+        {% endfor %}
+    action: persistent_notification.create
+
+  - data:
+      title: Wetterwarnung
+      message: >
+        {% set anzahl = state_attr(blueprint.input.warnsensor, 'warning_count') | int(default=1) %}
+
+        {% for i in range(1, anzahl + 1) %}
+        ---
+        ### **Warnung {{ i }}**
+        **Name:** {{ state_attr(blueprint.input.warnsensor, 'warning_' ~ i ~ '_name') }}  
+        **Titel:** {{ state_attr(blueprint.input.warnsensor, 'warning_' ~ i ~ '_headline') }}  
+        **Weitere Informationen:** Siehe Home Assistant  
+        **Zeitraum:**  
+        - Start: {{ (state_attr(blueprint.input.warnsensor, 'warning_' ~ i ~ '_start') | as_datetime | as_local).strftime('%d.%m.%Y %H:%M') }}  
+        - Ende: {{ (state_attr(blueprint.input.warnsensor, 'warning_' ~ i ~ '_end') | as_datetime | as_local).strftime('%d.%m.%Y %H:%M') }}
+        {% endfor %}
+    action: call_service
+    service: notify.mobile_app_{{ device_attr(blueprint.input.mobile_device, 'name') | lower | replace(' ', '_') }}
