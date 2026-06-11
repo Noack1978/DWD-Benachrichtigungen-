@@ -1,5 +1,6 @@
 blueprint:
   name: Wetterwarnung – Allgemeine Benachrichtigung
+  source_url: https://github.com/Noack1978/DWD-Benachrichtigungen-/blob/main/wetterwarnung.yaml
   description: Sendet eine Wetterwarnung als persistente Benachrichtigung und an ein mobiles Gerät
   domain: script
   input:
