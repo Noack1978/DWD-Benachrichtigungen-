@@ -10,12 +10,15 @@ blueprint:
       selector:
         entity:
           domain: sensor
-    mobile_device:
-      name: Mobiles Gerät
-      description: Gerät, an das die Push-Benachrichtigung geschickt wird
+    mobile_target:
+      name: Notify-Ziel
+      description: >
+        Notify-Entity (z. B. notify.<gerät>), an die die Push-Benachrichtigung
+        geschickt wird. Seit HA 2026.5 stellt die mobile_app-Integration
+        Notify-Entities statt fester Dienste bereit.
       selector:
-        device:
-          integration: mobile_app
+        entity:
+          domain: notify
 
 sequence:
   - data:
@@ -57,5 +60,6 @@ sequence:
         - Start: {{ (state_attr(blueprint.input.warnsensor, 'warning_' ~ i ~ '_start') | as_datetime | as_local).strftime('%d.%m.%Y %H:%M') }}  
         - Ende: {{ (state_attr(blueprint.input.warnsensor, 'warning_' ~ i ~ '_end') | as_datetime | as_local).strftime('%d.%m.%Y %H:%M') }}
         {% endfor %}
-    action: call_service
-    service: notify.mobile_app_{{ device_attr(blueprint.input.mobile_device, 'name') | lower | replace(' ', '_') }}
+    action: notify.send_message
+    target:
+      entity_id: !input mobile_target

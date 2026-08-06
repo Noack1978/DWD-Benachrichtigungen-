@@ -31,3 +31,10 @@ Du kannst diese Blueprints direkt über My Home Assistant importieren:
 ## Hinweis
 
 Die Blueprints sind allgemein gehalten und enthalten keinen Stadtnamen. Du kannst sie für beliebige Regionen verwenden.
+
+## 📋 Changelog
+
+### v1.1.0-beta.1
+- 🔄 Kompatibilität mit neuen HA-Notify-Entities: Eingabe „Mobiles Gerät" (Geräte-Auswahl) ersetzt durch „Notify-Ziel" (Entity-Auswahl)
+- ⚠️ Breaking Change: Bestehende Nutzer müssen beim Update einmalig das Notify-Ziel im Blueprint-Input neu auswählen
+- Versand vereinfacht auf `notify.send_message` mit Entity-Target statt dynamisch gebautem Dienstnamen
